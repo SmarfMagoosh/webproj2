@@ -21,12 +21,12 @@ export function makeLendingLibrary(dao: LibraryDao) {
 }
 
 export class LendingLibrary {
-
   constructor(private readonly dao: LibraryDao) {
   }
 
   /** clear out underlying db */
   async clear() : Promise<Errors.Result<void>> {
+    
     return Errors.errResult('TODO');
   }
 

@@ -5,7 +5,6 @@ import { Errors } from 'cs544-js-utils';
 import * as Lib from './library.js';
 import { resourceLimits } from 'worker_threads';
 
-//TODO: define any DB specific types if necessary
 type DbBook = Lib.Book & { _id: string }
 
 export async function makeLibraryDao(dbUrl: string) {
