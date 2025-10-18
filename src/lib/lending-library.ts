@@ -2,6 +2,7 @@ import { Errors } from 'cs544-js-utils';
 
 import { LibraryDao } from './library-dao.js';
 import * as Lib from './library.js';
+import { parse } from 'path';
 
 /** Note that errors are documented using the `code` option which must be
  *  returned (the `message` can be any suitable string which describes
@@ -48,7 +49,13 @@ export class LendingLibrary {
    *      inconsistent with the data already present.
    */
   async addBook(req: Record<string, any>): Promise<Errors.Result<Lib.XBook>> {
-    return Errors.errResult('TODO');
+    const parsed = Lib.validate("addBook", req);
+    if (parsed.isOk) {
+      const data = parsed.val;
+      return this.dao.createBook(data);
+    } else {
+      return Errors.errResult(parsed);
+    }
   }
 
   /** Return all books whose authors and title fields contain all
@@ -71,7 +78,7 @@ export class LendingLibrary {
    *    BAD_REQ: no words in search, index/count not int or negative.
    */
   async findBooks(req: Record<string, any>) : Promise<Errors.Result<Lib.XBook[]>> {
-    return Errors.errResult('TODO');
+    return Errors.errResult('TODO'); 
   }
 
 
@@ -86,6 +93,7 @@ export class LendingLibrary {
    *      patron already has a copy of the same book checked out
    */
   async checkoutBook(req: Record<string, any>) : Promise<Errors.Result<void>> {
+    const parsed = Lib.validate("checkoutBook", req);
     return Errors.errResult('TODO');
   }
 
@@ -99,6 +107,7 @@ export class LendingLibrary {
    *    no checkout of the book by patronId.
    */
   async returnBook(req: Record<string, any>) : Promise<Errors.Result<void>> {
+    const parsed = Lib.validate("returnBook", req);
     return Errors.errResult('TODO');
   }
 

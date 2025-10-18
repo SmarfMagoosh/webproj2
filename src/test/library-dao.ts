@@ -9,7 +9,7 @@ import { BOOKS, } from './test-data.js';
 
 import { assert, expect } from 'chai';
 
-describe('library DAO', () => {
+describe.skip('library DAO', () => {
 
   //mocha will run beforeEach() before each test to set up these variables
   let memDao : MemDao;

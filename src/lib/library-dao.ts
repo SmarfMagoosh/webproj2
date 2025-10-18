@@ -79,7 +79,7 @@ export class LibraryDao {
     }
   }
 
-  async readBook(isbn: string): Promise<Errors.Result<Lib.Book>> {
+  async getBooks(isbn: string): Promise<Errors.Result<Lib.Book>> {
     try {
       const res = await this.books.findOne({_id: isbn});
       return res ? Errors.okResult(res) : Errors.errResult(`No book for isbn ${isbn}`, {code: "NOT_FOUND"})

@@ -15,7 +15,7 @@ import { assert, expect } from 'chai';
 //to ensure that typescript narrows result correctly
 
 
-describe.skip('lending library', () => {
+describe('lending library', () => {
 
   let memDao : MemDao;
   let library: LendingLibrary;
@@ -128,7 +128,7 @@ describe.skip('lending library', () => {
   });  //describe('addBooks()', ...)
 
 
-  describe('findBooks()', async () => {
+  describe.skip('findBooks()', async () => {
 
     beforeEach(async () => {
       for (const book of BOOKS) {
@@ -220,7 +220,7 @@ describe.skip('lending library', () => {
     
   });
 
-  describe('checkoutBook() with empty library', async () => {
+  describe.skip('checkoutBook() with empty library', async () => {
 
     it('must error on missing field', async () => {
       for (const f of [ 'isbn', 'patronId' ]) {
@@ -242,7 +242,7 @@ describe.skip('lending library', () => {
 
   });    
 
-  describe('checkoutBook() with populated library', async () => {
+  describe.skip('checkoutBook() with populated library', async () => {
     
     beforeEach(async () => {
       for (const book of BOOKS) {
@@ -278,7 +278,7 @@ describe.skip('lending library', () => {
 
   });
 
-  describe('returnBook() with empty library', async () => {
+  describe.skip('returnBook() with empty library', async () => {
 
     it('must error on missing field', async () => {
       for (const f of [ 'isbn', 'patronId' ]) {
@@ -298,7 +298,7 @@ describe.skip('lending library', () => {
     });
   });
 
-  describe('checkout and return books', async () => {
+  describe.skip('checkout and return books', async () => {
 
     beforeEach(async () => {
       for (const book of BOOKS) {
