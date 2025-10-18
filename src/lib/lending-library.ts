@@ -70,9 +70,7 @@ export class LendingLibrary {
    *    BAD_TYPE: search field is not a string or index/count are not numbers.
    *    BAD_REQ: no words in search, index/count not int or negative.
    */
-  async findBooks(req: Record<string, any>)
-    : Promise<Errors.Result<Lib.XBook[]>>
-  {
+  async findBooks(req: Record<string, any>) : Promise<Errors.Result<Lib.XBook[]>> {
     return Errors.errResult('TODO');
   }
 

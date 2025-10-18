@@ -24,13 +24,13 @@ const MSGS = {
 //   publisher: a non-empty string.
 //   nCopies: an optional positive integer
 const Book =  z.object({
-  isbn: z.string(),
-  title: z.string(),
-  authors: z.string().array(),
-  pages: z.number(),
-  year: z.number(),
-  publisher: z.string(),
-  nCopies: z.number(),
+  isbn: z.string().regex(/\d{3}-\d{3}-\d{3}-\d/),
+  title: z.string().min(1),
+  authors: z.string().array().min(1),
+  pages: z.number().gte(1),
+  year: z.number().gte(GUTENBERG_YEAR).lte(NOW_YEAR),
+  publisher: z.string().min(1),
+  nCopies: z.number().gte(1).optional(),
 });
 
 export type Book = z.infer<typeof Book>;
@@ -43,9 +43,9 @@ export type XBook = z.infer<typeof XBook>;
 //   index: an optional non-negative integer.
 //   count: an optional non-negative integer.
 const Find = z.object({
-  search: z.string(),
-  index: z.number(),
-  count: z.number(),
+  search: z.string().regex(/\w+/),
+  index: z.number().gte(0).optional(),
+  count: z.number().gte(0).optional(),
 });
 export type Find = z.infer<typeof Find>;
 
@@ -53,8 +53,8 @@ export type Find = z.infer<typeof Find>;
 //   isbn: a ISBN-10 string of the form ddd-ddd-ddd-d.
 //   patronId: a non-empty string.
 const Lend = z.object({
-  isbn: z.string(),
-  patronId: z.string(),
+  isbn: z.string().regex(/\d{3}-\d{3}-\d{3}-\d/),
+  patronId: z.string().min(1),
 });
 export type Lend = z.infer<typeof Lend>;
 
@@ -65,12 +65,9 @@ const VALIDATORS: Record<string, z.ZodSchema> = {
   returnBook: Lend,
 };
 
-export function validate<T>(command: string, req: Record<string, any>)
-  : Errors.Result<T> 
-{
+export function validate<T>(command: string, req: Record<string, any>) : Errors.Result<T> {
   const validator = VALIDATORS[command];
   return (validator)
-    ? zodToResult(validator.safeParse(req), MSGS)
+    ? zodToResult(validator.safeParse(req), MSGS) as Errors.Result<T>
     : Errors.errResult(`no validator for command ${command}`);
 }
-

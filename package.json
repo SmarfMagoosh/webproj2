@@ -27,7 +27,8 @@
   },
   "dependencies": {
     "cs544-js-utils": "file:cs544-js-utils.tgz",
-    "cs544-node-utils": "file:cs544-node-utils.tgz"
+    "cs544-node-utils": "file:cs544-node-utils.tgz",
+    "zod": "^4.1.12"
   },
   "keywords": []
 }
