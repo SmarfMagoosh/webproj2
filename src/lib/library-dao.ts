@@ -3,8 +3,10 @@ import * as mongo from 'mongodb';
 import { Errors } from 'cs544-js-utils';
 
 import * as Lib from './library.js';
+import { resourceLimits } from 'worker_threads';
 
 //TODO: define any DB specific types if necessary
+type DbBook = Lib.Book & { _id: string }
 
 export async function makeLibraryDao(dbUrl: string) {
   return await LibraryDao.make(dbUrl);
@@ -18,14 +20,14 @@ const MONGO_OPTIONS = {
 export class LibraryDao {
   private client: mongo.MongoClient;
   private db: mongo.Db;
-  private books: mongo.Collection<Lib.Book>;
+  private books: mongo.Collection<DbBook>;
 
   //called by below static make() factory function with
   //parameters to be cached in this instance.
   constructor(
     client: mongo.MongoClient, 
     db: mongo.Db,
-    books: mongo.Collection<Lib.Book>
+    books: mongo.Collection<DbBook>
   ) {
     this.client = client,
     this.db = db
@@ -44,7 +46,7 @@ export class LibraryDao {
 
       // select database
       const db = client.db("library");
-      const books = db.collection<Lib.Book>("books");
+      const books = db.collection<DbBook>("books");
 
       return Errors.okResult(new LibraryDao(client, db, books));
     }
@@ -71,7 +73,7 @@ export class LibraryDao {
   // CRUD
   async createBook(book: Lib.Book): Promise<Errors.Result<Lib.Book>> {
     try {
-      const res = await this.books.insertOne(book);
+      const res = await this.books.insertOne({ _id: book.isbn, ...book });
       return res.acknowledged ? Errors.okResult(book) : Errors.errResult("Insert failed");
     } catch(error: any) {
       return Errors.errResult(error.message);
@@ -80,29 +82,35 @@ export class LibraryDao {
 
   async readBook(isbn: string): Promise<Errors.Result<Lib.Book>> {
     try {
-      
+      const res = await this.books.findOne({_id: isbn});
+      return res ? Errors.okResult(res) : Errors.errResult(`No book for isbn ${isbn}`, {code: "NOT_FOUND"})
     } catch(error: any) {
-      
+      return Errors.errResult(error.message, 'DB');
     }
-    return null;
   }
 
-  async updateBook(isbn: string, update: Lib.Book): Promise<Errors.Result<Lib.Book>> {
+  async updateBook(isbn: string, update: Partial<Lib.Book>): Promise<Errors.Result<number>> {
     try {
-      
+      const res = await this.books.updateOne(
+        { _id: isbn },
+        { $set: update }
+      );
+
+      return res.matchedCount === 0 
+        ? Errors.errResult(`No book found with isbn ${isbn}`, "DB")
+        : Errors.okResult(res.modifiedCount);  
     } catch(error: any) {
-      
+      return Errors.errResult(error.message, "DB");
     }
-    return null;
   }
 
-  async deleteBook(isbn: string): Promise<Errors.Result<Lib.Book>> {
+  async deleteBook(isbn: string): Promise<Errors.Result<number>> {
     try {
-      
+      const res = await this.books.deleteOne({ _id: isbn});
+      return Errors.okResult(res.deletedCount ?? 0);
     } catch(error: any) {
-      
+      return Errors.errResult(`No book found with isbn ${isbn}`, "DB");
     }
-    return null;
   } 
 }
 
