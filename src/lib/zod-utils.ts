@@ -52,8 +52,7 @@ function zodErrorToResultError<T>(zodError: z.ZodError, issueInfos: IssueInfos)
   return new Errors.ErrResult(errors);
 }
 
-
-function issueMessage(zIssue: z.ZodIssue) {
+function issueMessage(zIssue: z.ZodIssue): string {
   let message = zIssue.message;
   const path = zIssue.path ?? [];
   const widget = (path.at(-1) ?? '').toString();

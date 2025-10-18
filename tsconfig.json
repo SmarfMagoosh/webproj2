@@ -12,7 +12,6 @@
     "target": "esnext",
     "esModuleInterop": true,
     "sourceMap": true,
-    "declaration": true,
     "pretty": false,
     "noImplicitAny": true,
     "declaration": true,
