@@ -50,8 +50,13 @@ export class LendingLibrary {
   async addBook(req: Record<string, any>): Promise<Errors.Result<Lib.XBook>> {
     const parsed = Lib.validate("addBook", req);
     if (parsed.isOk) {
-      const data = parsed.val;
-      return this.dao.createBook(data);
+      const book = this.dao.getBook(req.isbn);
+      if (book !== null) {
+        return this.dao.createBook(parsed.val);
+      } else {
+        await this.dao.updateBook(req.isbn, { nCopies: req.nCopies });
+        return Errors.okResult(null);
+      }
     } else {
       return Errors.errResult(parsed);
     }
@@ -78,12 +83,9 @@ export class LendingLibrary {
    */
   async findBooks(req: Record<string, any>) : Promise<Errors.Result<Lib.XBook[]>> {
     const parsed = Lib.validate("findBooks", req);
-    if (parsed.isOk) {
-      const data = parsed.val;
-      return this.dao.getBooks(req.search.split(/\s+/), req.index ?? -1, req.count ?? -1);
-    } else {
-      return Errors.errResult(parsed);
-    }
+    return parsed.isOk
+      ? this.dao.getBooks(parsed.val)
+      : Errors.errResult(parsed);
   }
 
 
@@ -98,8 +100,7 @@ export class LendingLibrary {
    *      patron already has a copy of the same book checked out
    */
   async checkoutBook(req: Record<string, any>) : Promise<Errors.Result<void>> {
-    const parsed = Lib.validate("checkoutBook", req);
-    return Errors.errResult('TODO');
+    return null;
   }
 
   /** Set up patron req.patronId to returns book req.isbn.

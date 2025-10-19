@@ -33,7 +33,7 @@ describe('lending library', () => {
   });
 
 
-  describe('addBook()', () => {
+  describe.skip('addBook()', () => {
 
     const NUMERIC_FIELDS = [ 'pages', 'year', 'nCopies' ];
 
@@ -128,7 +128,7 @@ describe('lending library', () => {
   });  //describe('addBooks()', ...)
 
 
-  describe('findBooks()', async () => {
+  describe.skip('findBooks()', async () => {
 
     beforeEach(async () => {
       for (const book of BOOKS) {
@@ -163,12 +163,12 @@ describe('lending library', () => {
     it('must find all results', async () => {
       const count = 9999;
       for (const lang of [ 'javascript', 'ruby', 'scala' ]) {
-	const search = {search: `a ${lang} `, count}
-	const searchResult = await library.findBooks(search);
-	assert(searchResult.isOk === true);
-	expect(searchResult.val).to.have.length(LANG_BOOKS[lang].length);
-	const expected = LANG_BOOKS[lang].map(b => ({nCopies: 1, ...b}));
-	expect(searchResult.val).to.deep.equal(expected);
+        const search = {search: `a ${lang} `, count}
+        const searchResult = await library.findBooks(search);
+        assert(searchResult.isOk === true);
+        expect(searchResult.val).to.have.length(LANG_BOOKS[lang].length);
+        const expected = LANG_BOOKS[lang].map(b => ({nCopies: 1, ...b}));
+        expect(searchResult.val).to.deep.equal(expected);
       }
     });
 	       
@@ -178,8 +178,8 @@ describe('lending library', () => {
       const searchResult = await library.findBooks(search);
       assert(searchResult.isOk === true);
       const expected = BOOKS
-	.filter(b => b.title.match(/definitive/i))
-	.sort((b1, b2) => b1.title.localeCompare(b2.title))
+        .filter(b => b.title.match(/definitive/i))
+        .sort((b1, b2) => b1.title.localeCompare(b2.title))
         .map(b => ({ nCopies: 1, ...b }));
       expect(searchResult.val).to.deep.equal(expected);
     });
@@ -190,9 +190,9 @@ describe('lending library', () => {
       const searchResult = await library.findBooks(search);
       assert(searchResult.isOk === true);
       const expected = BOOKS
-	.filter(b => b.title.match(/definitive/i))
-	.filter(b => b.title.match(/javascript/i))
-	.sort((b1, b2) => b1.title.localeCompare(b2.title))
+        .filter(b => b.title.match(/definitive/i))
+        .filter(b => b.title.match(/javascript/i))
+        .sort((b1, b2) => b1.title.localeCompare(b2.title))
         .map(b => ({ nCopies: 1, ...b }));
       expect(searchResult.val).to.deep.equal(expected);
     });

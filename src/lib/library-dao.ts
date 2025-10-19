@@ -78,29 +78,16 @@ export class LibraryDao {
   // CRUD
   async createBook(book: Lib.Book): Promise<Errors.Result<DbBook>> {
     try {
-      const currBook = await this.books.findOne({ _id: book.isbn });
       const dbook: DbBook = {_id: book.isbn, patrons: [], ...book};
-      if (currBook !== null) {
-        // if the book was already in the database
-        const res = await this.updateBook(book.isbn!, {nCopies: (currBook.nCopies ?? 1) + (book.nCopies ?? 1) });
-        if (res.isOk && res.val > 0) {
-          return Errors.okResult(dbook);
-        } else if (res.isOk && res.val <= 0) {
-          return Errors.errResult("Update of nCopies failed");
-        } else {
-          return Errors.errResult(res);
-        }
-      } else {
-        // if this is the first time inserting
-        const res = await this.books.insertOne(dbook);
-        return res.acknowledged ? Errors.okResult(dbook) : Errors.errResult("Insert failed");
-      }
+      const res = await this.books.insertOne(dbook);
+      return res.acknowledged ? Errors.okResult(dbook) : Errors.errResult("Insert failed");
     } catch(error: any) {
       return Errors.errResult(error.message);
     }
   }
 
-  async getBooks(query: string[], index: number, count: number): Promise<Errors.Result<Lib.Book[]>> {
+  async getBooks(req: Record<string, any>): Promise<Errors.Result<Lib.Book[]>> {
+    const query: string[] = req.search.match(/\b\w{2,}\b/g);
     const allInConditions = query.map(word => {
       return {
         $or: [
@@ -112,17 +99,28 @@ export class LibraryDao {
     const param = {$and: allInConditions};
     try {
       let res = this.books.find(param);
-      if (index >= 0) {
-        res = res.skip(index);
+      if (req.index >= 0) {
+        res = res.skip(req.index);
       }
-      if (count >= 0) {
-        res = res.limit(count);
+      if (req.count >= 0) {
+        res = res.limit(req.count);
       }
       const result = await res
         .sort({ title: 1 })
         .toArray()
       return Errors.okResult(result.map(extract));
     } catch(error: any) {
+      return Errors.errResult(error.message);
+    }
+  }
+
+  async getBook(isbn: string): Promise<Errors.Result<DbBook>> {
+    try {
+      let res = await this.books.findOne({_id: isbn});
+      return res === null
+        ? Errors.errResult(res)
+        : Errors.okResult(res);
+    } catch (error: any) {
       return Errors.errResult(error.message);
     }
   }

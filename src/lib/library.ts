@@ -43,7 +43,7 @@ export type XBook = z.infer<typeof XBook>;
 //   index: an optional non-negative integer.
 //   count: an optional non-negative integer.
 const Find = z.object({
-  search: z.string().regex(/\w{2,}/),
+  search: z.string().regex(/\b\w{2,}\b/g),
   index: z.number().int().gte(0).optional(),
   count: z.number().int().gte(0).optional(),
 });
