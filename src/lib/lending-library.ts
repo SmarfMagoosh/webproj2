@@ -140,7 +140,27 @@ export class LendingLibrary {
    */
   async returnBook(req: Record<string, any>) : Promise<Errors.Result<void>> {
     const parsed = Lib.validate("returnBook", req);
-    return Errors.errResult('TODO');
+    if (!parsed.isOk) {
+      return Errors.errResult(parsed);
+    }
+
+    const bookRes = await this.dao.getBook(req.isbn);
+    // make sure isbn is associated with book in DB
+    if (!bookRes.isOk) {
+      return Errors.errResult(bookRes);
+    }
+
+    const { patrons, _id, ...book } = bookRes.val;
+
+    // make sure patron has checked out the book
+    const patronIdx = patrons.findIndex(x => x === req.patronId);
+    if (patronIdx === -1) {
+      return Errors.errResult(req.patronId);
+    }
+    patrons.splice(patronIdx, 1);
+    await this.dao.updateBook(req.isbn, { patrons })
+
+    return Errors.okResult(null);
   }
 
   //add class code as needed

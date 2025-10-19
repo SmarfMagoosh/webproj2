@@ -6,7 +6,7 @@ import { assert, expect } from 'chai';
 
 const BOOK_1 = BOOKS[0];
 
-describe.skip('library types', () => {
+describe('library types', () => {
 
   describe('Book validation', () => {
     it('a good book is valid', () => {

@@ -33,7 +33,7 @@ describe('lending library', () => {
   });
 
 
-  describe.skip('addBook()', () => {
+  describe('addBook()', () => {
 
     const NUMERIC_FIELDS = [ 'pages', 'year', 'nCopies' ];
 
@@ -128,7 +128,7 @@ describe('lending library', () => {
   });  //describe('addBooks()', ...)
 
 
-  describe.skip('findBooks()', async () => {
+  describe('findBooks()', async () => {
 
     beforeEach(async () => {
       for (const book of BOOKS) {
@@ -278,7 +278,7 @@ describe('lending library', () => {
 
   });
 
-  describe.skip('returnBook() with empty library', async () => {
+  describe('returnBook() with empty library', async () => {
 
     it('must error on missing field', async () => {
       for (const f of [ 'isbn', 'patronId' ]) {
@@ -298,7 +298,7 @@ describe('lending library', () => {
     });
   });
 
-  describe.skip('checkout and return books', async () => {
+  describe('checkout and return books', async () => {
 
     beforeEach(async () => {
       for (const book of BOOKS) {
