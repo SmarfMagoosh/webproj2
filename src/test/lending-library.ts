@@ -128,7 +128,7 @@ describe('lending library', () => {
   });  //describe('addBooks()', ...)
 
 
-  describe.skip('findBooks()', async () => {
+  describe('findBooks()', async () => {
 
     beforeEach(async () => {
       for (const book of BOOKS) {

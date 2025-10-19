@@ -4,8 +4,9 @@ import { Errors } from 'cs544-js-utils';
 
 import * as Lib from './library.js';
 import { resourceLimits } from 'worker_threads';
+import { resolveTlsa } from 'dns';
 
-type DbBook = Lib.Book & { _id: string }
+//type DbBook = Lib.Book & { _id: string }
 
 export async function makeLibraryDao(dbUrl: string) {
   return await LibraryDao.make(dbUrl);
@@ -16,17 +17,22 @@ const MONGO_OPTIONS = {
   ignoreUndefined: true,  //ignore undefined fields in queries
 };
 
+function extract<T>(value: mongo.WithId<T>): T {
+  const {_id, ...rest} = value;
+  return rest as T;
+}
+
 export class LibraryDao {
   private client: mongo.MongoClient;
   private db: mongo.Db;
-  private books: mongo.Collection<DbBook>;
+  private books: mongo.Collection<Lib.Book>;
 
   //called by below static make() factory function with
   //parameters to be cached in this instance.
   constructor(
     client: mongo.MongoClient, 
     db: mongo.Db,
-    books: mongo.Collection<DbBook>
+    books: mongo.Collection<Lib.Book>
   ) {
     this.client = client,
     this.db = db
@@ -45,7 +51,7 @@ export class LibraryDao {
 
       // select database
       const db = client.db("library");
-      const books = db.collection<DbBook>("books");
+      const books = db.collection<Lib.Book>("books");
 
       return Errors.okResult(new LibraryDao(client, db, books));
     }
@@ -72,26 +78,58 @@ export class LibraryDao {
   // CRUD
   async createBook(book: Lib.Book): Promise<Errors.Result<Lib.Book>> {
     try {
-      const res = await this.books.insertOne({ _id: book.isbn, ...book });
-      return res.acknowledged ? Errors.okResult(book) : Errors.errResult("Insert failed");
+      const currBook = await this.books.findOne({ isbn: book.isbn! });
+      if (currBook !== null) {
+        // if the book was already in the database
+        const res = await this.updateBook(book.isbn!, {nCopies: (currBook.nCopies ?? 1) + (book.nCopies ?? 1) });
+        if (res.isOk && res.val > 0) {
+          return Errors.okResult(book);
+        } else if (res.isOk && res.val <= 0) {
+          return Errors.errResult("Update of nCopies failed");
+        } else {
+          return Errors.errResult(res);
+        }
+      } else {
+        // if this is the first time inserting
+        const res = await this.books.insertOne(book);
+        return res.acknowledged ? Errors.okResult(book) : Errors.errResult("Insert failed");
+      }
     } catch(error: any) {
       return Errors.errResult(error.message);
     }
   }
 
-  async getBooks(isbn: string): Promise<Errors.Result<Lib.Book>> {
+  async getBooks(query: string[], index: number, count: number): Promise<Errors.Result<Lib.Book[]>> {
+    const allInConditions = query.map(word => {
+      return {
+        $or: [
+          { title: { $regex: word, $options: "i" } }, 
+          { authors: { $regex: word, $options: "i" }}
+        ]
+    }})
+
+    const param = {$and: allInConditions};
     try {
-      const res = await this.books.findOne({_id: isbn});
-      return res ? Errors.okResult(res) : Errors.errResult(`No book for isbn ${isbn}`, {code: "NOT_FOUND"})
+      let res = this.books.find(param);
+      if (index >= 0) {
+        res = res.skip(index);
+      }
+      if (count >= 0) {
+        res = res.limit(count);
+      }
+      const result = await res
+        .sort({ title: 1 })
+        .toArray()
+      return Errors.okResult(result.map(extract));
     } catch(error: any) {
-      return Errors.errResult(error.message, 'DB');
+      return Errors.errResult(error.message);
     }
   }
 
   async updateBook(isbn: string, update: Partial<Lib.Book>): Promise<Errors.Result<number>> {
     try {
       const res = await this.books.updateOne(
-        { _id: isbn },
+        { isbn: isbn },
         { $set: update }
       );
 
@@ -104,12 +142,13 @@ export class LibraryDao {
   }
 
   async deleteBook(isbn: string): Promise<Errors.Result<number>> {
-    try {
-      const res = await this.books.deleteOne({ _id: isbn});
-      return Errors.okResult(res.deletedCount ?? 0);
-    } catch(error: any) {
-      return Errors.errResult(`No book found with isbn ${isbn}`, "DB");
-    }
+    return null;
+    // try {
+    //   const res = await this.books.deleteOne({ _id: isbn});
+    //   return Errors.okResult(res.deletedCount ?? 0);
+    // } catch(error: any) {
+    //   return Errors.errResult(`No book found with isbn ${isbn}`, "DB");
+    // }
   } 
 }
 

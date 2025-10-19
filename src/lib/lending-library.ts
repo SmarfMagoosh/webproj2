@@ -22,8 +22,7 @@ export function makeLendingLibrary(dao: LibraryDao) {
 }
 
 export class LendingLibrary {
-  constructor(private readonly dao: LibraryDao) {
-  }
+  constructor(private readonly dao: LibraryDao) {}
 
   /** clear out underlying db */
   async clear() : Promise<Errors.Result<void>> {
@@ -78,7 +77,13 @@ export class LendingLibrary {
    *    BAD_REQ: no words in search, index/count not int or negative.
    */
   async findBooks(req: Record<string, any>) : Promise<Errors.Result<Lib.XBook[]>> {
-    return Errors.errResult('TODO'); 
+    const parsed = Lib.validate("findBooks", req);
+    if (parsed.isOk) {
+      const data = parsed.val;
+      return this.dao.getBooks(req.search.split(/\s+/), req.index ?? -1, req.count ?? -1);
+    } else {
+      return Errors.errResult(parsed);
+    }
   }
 
 
