@@ -99,35 +99,35 @@ export class LendingLibrary {
    *      no copies of the book are available for checkout
    *      patron already has a copy of the same book checked out
    */
-  async checkoutBook(req: Record<string, any>) : Promise<Errors.Result<void>> {
-    const parsed = Lib.validate("checkoutBook", req);
-    // make sure request is valid
-    if (!parsed.isOk) {
-      return Errors.errResult(parsed);
-    }
+  // async checkoutBook(req: Record<string, any>) : Promise<Errors.Result<void>> {
+  //   const parsed = Lib.validate("checkoutBook", req);
+  //   // make sure request is valid
+  //   if (!parsed.isOk) {
+  //     return Errors.errResult(parsed);
+  //   }
 
-    const bookRes = await this.dao.getBook(req.isbn);
-    // make sure isbn is associated with book in DB
-    if (!bookRes.isOk) {
-      return Errors.errResult(bookRes);
-    }
+  //   const bookRes = await this.dao.getBook(req.isbn);
+  //   // make sure isbn is associated with book in DB
+  //   if (!bookRes.isOk) {
+  //     return Errors.errResult(bookRes);
+  //   }
 
-    const { patrons, _id, ...book } = bookRes.val;
-    // make sure patron doesn't already havea  copy of the book
-    if (patrons.includes(req.patronId)) {
-      return Errors.errResult(req.patronId);
-    }
-    // make sure the book is still in stock
-    if (book.nCopies <= patrons.length) {
-      return Errors.errResult(req.patronId);
-    }
+  //   const { patrons, _id, ...book } = bookRes.val;
+  //   // make sure patron doesn't already havea  copy of the book
+  //   if (patrons.includes(req.patronId)) {
+  //     return Errors.errResult(req.patronId);
+  //   }
+  //   // make sure the book is still in stock
+  //   if (book.nCopies <= patrons.length) {
+  //     return Errors.errResult(req.patronId);
+  //   }
 
-    // add patron to list of patrons that have the book checked out
-    patrons.push(req.patronId);
-    await this.dao.updateBook(req.isbn, { patrons })
+  //   // add patron to list of patrons that have the book checked out
+  //   patrons.push(req.patronId);
+  //   await this.dao.updateBook(req.isbn, { patrons })
 
-    return Errors.okResult(null);
-  }
+  //   return Errors.okResult(null);
+  // }
 
   /** Set up patron req.patronId to returns book req.isbn.
    *  
@@ -138,30 +138,30 @@ export class LendingLibrary {
    *    isbn does not specify a book in the library or there is
    *    no checkout of the book by patronId.
    */
-  async returnBook(req: Record<string, any>) : Promise<Errors.Result<void>> {
-    const parsed = Lib.validate("returnBook", req);
-    if (!parsed.isOk) {
-      return Errors.errResult(parsed);
-    }
+  // async returnBook(req: Record<string, any>) : Promise<Errors.Result<void>> {
+  //   const parsed = Lib.validate("returnBook", req);
+  //   if (!parsed.isOk) {
+  //     return Errors.errResult(parsed);
+  //   }
 
-    const bookRes = await this.dao.getBook(req.isbn);
-    // make sure isbn is associated with book in DB
-    if (!bookRes.isOk) {
-      return Errors.errResult(bookRes);
-    }
+  //   const bookRes = await this.dao.getBook(req.isbn);
+  //   // make sure isbn is associated with book in DB
+  //   if (!bookRes.isOk) {
+  //     return Errors.errResult(bookRes);
+  //   }
 
-    const { patrons, _id, ...book } = bookRes.val;
+  //   const { patrons, _id, ...book } = bookRes.val;
 
-    // make sure patron has checked out the book
-    const patronIdx = patrons.findIndex(x => x === req.patronId);
-    if (patronIdx === -1) {
-      return Errors.errResult(req.patronId);
-    }
-    patrons.splice(patronIdx, 1);
-    await this.dao.updateBook(req.isbn, { patrons })
+  //   // make sure patron has checked out the book
+  //   const patronIdx = patrons.findIndex(x => x === req.patronId);
+  //   if (patronIdx === -1) {
+  //     return Errors.errResult(req.patronId);
+  //   }
+  //   patrons.splice(patronIdx, 1);
+  //   await this.dao.updateBook(req.isbn, { patrons })
 
-    return Errors.okResult(null);
-  }
+  //   return Errors.okResult(null);
+  // }
 
   //add class code as needed
 
