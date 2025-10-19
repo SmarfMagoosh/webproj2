@@ -6,7 +6,7 @@ import * as Lib from './library.js';
 import { resourceLimits } from 'worker_threads';
 import { resolveTlsa } from 'dns';
 
-//type DbBook = Lib.Book & { _id: string }
+type DbBook = Lib.Book & { _id: string, patrons: string[] }
 
 export async function makeLibraryDao(dbUrl: string) {
   return await LibraryDao.make(dbUrl);
@@ -17,22 +17,22 @@ const MONGO_OPTIONS = {
   ignoreUndefined: true,  //ignore undefined fields in queries
 };
 
-function extract<T>(value: mongo.WithId<T>): T {
-  const {_id, ...rest} = value;
-  return rest as T;
+function extract(value: DbBook): Lib.Book {
+  const { _id, patrons, ...book } = value;
+  return book as Lib.Book;
 }
 
 export class LibraryDao {
   private client: mongo.MongoClient;
   private db: mongo.Db;
-  private books: mongo.Collection<Lib.Book>;
+  private books: mongo.Collection<DbBook>;
 
   //called by below static make() factory function with
   //parameters to be cached in this instance.
   constructor(
     client: mongo.MongoClient, 
     db: mongo.Db,
-    books: mongo.Collection<Lib.Book>
+    books: mongo.Collection<DbBook>
   ) {
     this.client = client,
     this.db = db
@@ -51,7 +51,7 @@ export class LibraryDao {
 
       // select database
       const db = client.db("library");
-      const books = db.collection<Lib.Book>("books");
+      const books = db.collection<DbBook>("books");
 
       return Errors.okResult(new LibraryDao(client, db, books));
     }
@@ -76,14 +76,15 @@ export class LibraryDao {
   }
   
   // CRUD
-  async createBook(book: Lib.Book): Promise<Errors.Result<Lib.Book>> {
+  async createBook(book: Lib.Book): Promise<Errors.Result<DbBook>> {
     try {
-      const currBook = await this.books.findOne({ isbn: book.isbn! });
+      const currBook = await this.books.findOne({ _id: book.isbn });
+      const dbook: DbBook = {_id: book.isbn, patrons: [], ...book};
       if (currBook !== null) {
         // if the book was already in the database
         const res = await this.updateBook(book.isbn!, {nCopies: (currBook.nCopies ?? 1) + (book.nCopies ?? 1) });
         if (res.isOk && res.val > 0) {
-          return Errors.okResult(book);
+          return Errors.okResult(dbook);
         } else if (res.isOk && res.val <= 0) {
           return Errors.errResult("Update of nCopies failed");
         } else {
@@ -91,8 +92,8 @@ export class LibraryDao {
         }
       } else {
         // if this is the first time inserting
-        const res = await this.books.insertOne(book);
-        return res.acknowledged ? Errors.okResult(book) : Errors.errResult("Insert failed");
+        const res = await this.books.insertOne(dbook);
+        return res.acknowledged ? Errors.okResult(dbook) : Errors.errResult("Insert failed");
       }
     } catch(error: any) {
       return Errors.errResult(error.message);
@@ -142,13 +143,12 @@ export class LibraryDao {
   }
 
   async deleteBook(isbn: string): Promise<Errors.Result<number>> {
-    return null;
-    // try {
-    //   const res = await this.books.deleteOne({ _id: isbn});
-    //   return Errors.okResult(res.deletedCount ?? 0);
-    // } catch(error: any) {
-    //   return Errors.errResult(`No book found with isbn ${isbn}`, "DB");
-    // }
+    const q = await this.books.deleteOne({ _id: isbn});
+    if (q.acknowledged) {
+      return Errors.okResult(q.deletedCount);
+    } else {
+      return Errors.errResult(-1);
+    }
   } 
 }
 
