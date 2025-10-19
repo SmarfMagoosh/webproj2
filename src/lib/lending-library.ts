@@ -100,7 +100,33 @@ export class LendingLibrary {
    *      patron already has a copy of the same book checked out
    */
   async checkoutBook(req: Record<string, any>) : Promise<Errors.Result<void>> {
-    return null;
+    const parsed = Lib.validate("checkoutBook", req);
+    // make sure request is valid
+    if (!parsed.isOk) {
+      return Errors.errResult(parsed);
+    }
+
+    const bookRes = await this.dao.getBook(req.isbn);
+    // make sure isbn is associated with book in DB
+    if (!bookRes.isOk) {
+      return Errors.errResult(bookRes);
+    }
+
+    const { patrons, _id, ...book } = bookRes.val;
+    // make sure patron doesn't already havea  copy of the book
+    if (patrons.includes(req.patronId)) {
+      return Errors.errResult(req.patronId);
+    }
+    // make sure the book is still in stock
+    if (book.nCopies <= patrons.length) {
+      return Errors.errResult(req.patronId);
+    }
+
+    // add patron to list of patrons that have the book checked out
+    patrons.push(req.patronId);
+    await this.dao.updateBook(req.isbn, { patrons })
+
+    return Errors.okResult(null);
   }
 
   /** Set up patron req.patronId to returns book req.isbn.

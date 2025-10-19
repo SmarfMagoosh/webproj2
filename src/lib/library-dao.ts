@@ -125,7 +125,7 @@ export class LibraryDao {
     }
   }
 
-  async updateBook(isbn: string, update: Partial<Lib.Book>): Promise<Errors.Result<number>> {
+  async updateBook(isbn: string, update: Partial<DbBook>): Promise<Errors.Result<number>> {
     try {
       const res = await this.books.updateOne(
         { isbn: isbn },
@@ -147,7 +147,7 @@ export class LibraryDao {
     } else {
       return Errors.errResult(-1);
     }
-  } 
+  }
 }
 
 

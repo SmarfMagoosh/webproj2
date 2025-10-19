@@ -220,7 +220,7 @@ describe('lending library', () => {
     
   });
 
-  describe.skip('checkoutBook() with empty library', async () => {
+  describe('checkoutBook() with empty library', async () => {
 
     it('must error on missing field', async () => {
       for (const f of [ 'isbn', 'patronId' ]) {
@@ -242,7 +242,7 @@ describe('lending library', () => {
 
   });    
 
-  describe.skip('checkoutBook() with populated library', async () => {
+  describe('checkoutBook() with populated library', async () => {
     
     beforeEach(async () => {
       for (const book of BOOKS) {
